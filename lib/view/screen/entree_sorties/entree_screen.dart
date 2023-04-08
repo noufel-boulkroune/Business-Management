@@ -1,12 +1,11 @@
-// ignore_for_file: unused_field, use_full_hex_values_for_flutter_colors, prefer_interpolation_to_compose_strings
-
+import 'package:business_management/view/screen/entree_sorties/widget/product_info_formfield.dart';
+import 'package:business_management/view/screen/historique/historique_screen.dart';
+import 'package:business_management/view/screen/home/home_screen.dart';
+import 'package:business_management/view/screen/setting/setting_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
-import 'package:business_management/constante/spacing.dart';
-import 'package:business_management/view/screen/entree_sorties/widget/custom_text_form_field.dart';
+
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 
 class EntreeScreen extends StatefulWidget {
   const EntreeScreen({super.key});
@@ -16,10 +15,24 @@ class EntreeScreen extends StatefulWidget {
 }
 
 class _EntreeScreenState extends State<EntreeScreen> {
-  String _scanBarcode = '';
   bool _isTextFieldVisible = false;
+  int _currentIndex = 0;
   DateTime? selectedDate;
-  void _incrementCounter() {
+  late List<Map<String, Object>> _pages;
+
+  @override
+  void initState() {
+    _pages = [
+      {"page": HomeScreen(), "title": "Home screen"},
+      {"page": HistoriqueScreen(), "title": "Historique screen"},
+      {"page": HistoriqueScreen(), "title": "Historique screen"},
+      {"page": HistoriqueScreen(), "title": "Historique screen"},
+      {"page": SettingScreen(), "title": "setting screen"},
+    ];
+    super.initState();
+  }
+
+  void _showInfoPopup() {
     setState(() {
       _isTextFieldVisible = !_isTextFieldVisible;
     });
@@ -49,141 +62,113 @@ class _EntreeScreenState extends State<EntreeScreen> {
             '#ff6666', 'Cancel', true, ScanMode.BARCODE);
         print("++++++++++++++++++++++++++++++++++++++ the barcode is " +
             barcodeScanRes);
+        // barcodeScanRes == "8720181114526"
+        //     ? _isTextFieldVisible = true
+        //     : _isTextFieldVisible = false;
+        barcodeScanRes == "8720181114526" || barcodeScanRes == "6133776000616"
+            ? showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    content: ProductInfoFormfield(
+                      scanBarcode: scanBarcode,
+                      selectDate: _selectDate,
+                      selectedDate: selectedDate ?? DateTime.now(),
+                      barcode: barcodeScanRes,
+                    ),
+                  );
+                })
+            : null;
       } on PlatformException {
         barcodeScanRes = 'Failed to get platform version.';
       }
 
       if (!mounted) return;
 
-      setState(() {
-        _scanBarcode = barcodeScanRes;
-      });
+      setState(() {});
     }
 
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Visibility(
-                visible: _isTextFieldVisible,
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width * .8,
-                  child: Card(
-                    color: const Color(0xffcf4f4f7),
-                    shadowColor: Colors.black,
-                    elevation: 5,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20)),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: Spacing.MARGIN_SIZE_LARG,
-                          vertical: Spacing.MARGIN_SIZE_LARG),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            const Text(
-                              "Entre the products information",
-                              style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(
-                              height: 20,
-                            ),
-                            const CustomTextFormField(
-                              productHint: 'Price',
-                              productLabel: 'Enter the price',
-                              fieldIcon: EvaIcons.creditCardOutline,
-                            ),
-                            const CustomTextFormField(
-                                productHint: 'Quantity',
-                                productLabel: 'Enter the quantity',
-                                fieldIcon: EvaIcons.plusCircleOutline),
-                            const CustomTextFormField(
-                              productHint: 'Lot',
-                              productLabel: 'Enter the lot',
-                              fieldIcon: EvaIcons.gridOutline,
-                            ),
-                            const CustomTextFormField(
-                              productHint: 'Zone',
-                              productLabel: 'Enter the zone',
-                              fieldIcon: EvaIcons.mapOutline,
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      scanBarcode();
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.blue.shade300),
-                                    child: const Icon(
-                                      Icons.barcode_reader,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(
-                                  width: 14,
-                                ),
-                                Expanded(
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      //Location
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.blue.shade300),
-                                    child: const Icon(
-                                      EvaIcons.pinOutline,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                IconButton(
-                                  onPressed: () {
-                                    _selectDate(context);
-                                    setState(() {});
-                                  },
-                                  icon: const Icon(
-                                    EvaIcons.calendarOutline,
-                                    color: Colors.lightBlue,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  selectedDate == null
-                                      ? 'No date selected'
-                                      : 'Selected date: ${DateFormat('dd/MM/yyyy').format(selectedDate!).toString()}',
-                                  style: const TextStyle(color: Colors.blue),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+      body: _pages[_currentIndex]["page"] as Widget,
+      // Center(
+      //   child: SingleChildScrollView(
+      //     child: Column(
+      //       mainAxisAlignment: MainAxisAlignment.center,
+      //       children: <Widget>[
+      //         Visibility(
+      //             visible: _isTextFieldVisible,
+      //             child: ProductInfoFormfield(
+      //                 scanBarcode: scanBarcode,
+      //                 selectDate: _selectDate,
+      //                 selectedDate: selectedDate ?? DateTime.now())),
+      //       ],
+      //     ),
+      //   ),
+      // ),
+      bottomNavigationBar: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 8.0,
+        clipBehavior: Clip.antiAlias,
+        child: SizedBox(
+          height: kBottomNavigationBarHeight,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                top: BorderSide(
+                  color: Colors.grey,
+                  width: 0.5,
                 ),
               ),
-            ],
+            ),
+            child: BottomNavigationBar(
+                currentIndex: _currentIndex,
+                backgroundColor: Colors.blue,
+                selectedItemColor: Colors.white,
+                // unselectedItemColor: Colors.black,
+                type: BottomNavigationBarType.fixed,
+                onTap: (index) {
+                  setState(() {
+                    index == 2 ? null : _currentIndex = index;
+                  });
+                },
+                items: const [
+                  BottomNavigationBarItem(
+                      icon: Icon(Icons.home), label: 'Home'),
+                  BottomNavigationBarItem(
+                      icon: Icon(Icons.settings_outlined), label: 'Setting'),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.abc),
+                    label: '',
+                  ),
+                  BottomNavigationBarItem(
+                      icon: Icon(Icons.show_chart), label: 'Historique'),
+                  BottomNavigationBarItem(
+                      icon: Icon(Icons.history), label: 'Historique')
+                ]),
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+      floatingActionButtonLocation:
+          FloatingActionButtonLocation.miniCenterDocked,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: FloatingActionButton(
+          backgroundColor: _isTextFieldVisible ? Colors.blue : Colors.blueGrey,
+          child: const Icon(Icons.barcode_reader),
+          onPressed: () => setState(() {
+            scanBarcode();
+            //_showInfoPopup();
+            _isTextFieldVisible = false;
+            //_currentIndex = 1;
+          }),
+        ),
       ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: _incrementCounter,
+      //   tooltip: 'Increment',
+      //   child: const Icon(Icons.add),
+      // ),
     );
   }
 }
